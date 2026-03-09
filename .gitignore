@@ -1,0 +1,8 @@
+# Ignore database files and metadata
+databases/
+*.tbl
+*.meta
+
+# Ignore session files or logs
+*.log
+.DS_Store
