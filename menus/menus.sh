@@ -25,29 +25,7 @@ main_menu() {
 }
 
 db_menu() {
-    while true; do
-        echo -e "\n${YELLOW}--- Database: $CURRENT_DB ---${NC}"
-        echo "1. Create Table"
-        echo "2. List Tables"
-        echo "3. Drop Table"
-        echo "4. Insert into Table"
-        echo "5. Select From Table"
-        echo "6. Delete From Table"
-        echo "7. Update Table"
-        echo "8. Back to Main Menu"
-        echo -n "Select an option: "
-        read choice
-
-        case $choice in
-            1) echo "Create table placeholder" ;; # To be implemented
-            2) echo "List tables placeholder" ;; # To be implemented
-            3) echo "Drop table placeholder" ;; # To be implemented
-            4) echo "Insert placeholder" ;; # To be implemented
-            5) echo "Select placeholder" ;; # To be implemented
-            6) echo "Delete placeholder" ;; # To be implemented
-            7) echo "Update placeholder" ;; # To be implemented
-            8) return ;;
-            *) error "Invalid choice. Please try again." ;;
-        esac
-    done
+    # Placeholder for collaborator's table management menu
+    echo -e "${YELLOW}Entering Database Menu ${NC}"
 }
+
