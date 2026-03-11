@@ -11,7 +11,7 @@ main_menu() {
         echo "4. Drop Database"
         echo "5. Exit"
         echo -n "Select an option: "
-        read choice
+        read -r choice
 
         case $choice in
             1) create_database ;;

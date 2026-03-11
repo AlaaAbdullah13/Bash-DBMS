@@ -1,10 +1,10 @@
 #!/bin/bash
 # shellcheck shell=bash
-# ============================================
+# ===============================================
 # File    : operations/database_ops.sh
 # Author  : Alaa
 # Purpose : Create, List, Connect, Drop Database
-# ============================================
+# ===============================================
 
 create_database() {
     echo -n "Enter Database Name: "
