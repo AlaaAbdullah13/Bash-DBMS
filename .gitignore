@@ -1,0 +1,9 @@
+# Ignore runtime databases
+databases/
+
+# Ignore editor temp files
+*.swp
+*.tmp
+
+# Ignore system files
+.DS_Store
