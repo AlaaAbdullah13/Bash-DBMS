@@ -2,61 +2,31 @@
 
 create_table() {
 
-    read -r -p "Enter table name: " table_name
+    read -p "Enter table name: " table_name
 
     if [[ -z "$table_name" ]]; then
-        error "Table name cannot be empty."
-        return 1
+        echo "Table name cannot be empty"
+        return
     fi
 
     if ! validate_name "$table_name"; then
-        error "Invalid table name."
-        return 1
+        echo "Invalid table name"
+        return
     fi
 
-    meta_file="$CURRENT_DB_PATH/${table_name}${META_EXT}"
-    data_file="$CURRENT_DB_PATH/${table_name}${TABLE_EXT}"
+    meta_file="$CURRENT_DB_PATH/$table_name$META_EXT"
+    data_file="$CURRENT_DB_PATH/$table_name$TABLE_EXT"
 
-    if [[ -f "$meta_file" ]]; then
-        error "Table already exists."
-        return 1
+    if [[ -f "$meta_file" || -f "$data_file" ]]; then
+        echo "Table already exists"
+        return
     fi
 
-    read -r -p "Enter number of columns: " col_count
+    read -p "Enter number of columns: " col_count
 
     if ! [[ "$col_count" =~ ^[1-9][0-9]*$ ]]; then
-        error "Invalid column number."
-        return 1
-    fi
-
-    declare -a columns
-    declare -a types
-
-    for (( i=1; i<=col_count; i++ ))
-    do
-        read -r -p "Enter column $i name: " col_name
-
-        if ! validate_name "$col_name"; then
-            error "Invalid column name."
-            return 1
-        fi
-
-        read -r -p "Enter datatype for $col_name (int/string): " col_type
-
-        if [[ "$col_type" != "int" && "$col_type" != "string" ]]; then
-            error "Datatype must be int or string."
-            return 1
-        fi
-
-        columns[$i]="$col_name"
-        types[$i]="$col_type"
-    done
-
-    read -r -p "Enter primary key column number: " pk_index
-
-    if ! [[ "$pk_index" =~ ^[1-9][0-9]*$ ]] || (( pk_index < 1 || pk_index > col_count )); then
-        error "Invalid primary key column number."
-        return 1
+        echo "Invalid number of columns"
+        return
     fi
 
     > "$meta_file"
@@ -64,13 +34,39 @@ create_table() {
 
     for (( i=1; i<=col_count; i++ ))
     do
-        if (( i == pk_index )); then
-            echo "${columns[$i]}${META_SEP}${types[$i]}${META_SEP}PK" >> "$meta_file"
+        read -p "Enter column $i name: " col_name
+
+        if [[ -z "$col_name" ]]; then
+            echo "Column name cannot be empty"
+            rm -f "$meta_file" "$data_file"
+            return
+        fi
+
+        if ! validate_name "$col_name"; then
+            echo "Invalid column name"
+            rm -f "$meta_file" "$data_file"
+            return
+        fi
+
+        if [[ "$col_name" == "id" ]]; then
+            col_type="int"
+            echo "id datatype is fixed as int"
         else
-            echo "${columns[$i]}${META_SEP}${types[$i]}" >> "$meta_file"
+            read -p "Enter datatype of $col_name (int/string): " col_type
+
+            if [[ "$col_type" != "int" && "$col_type" != "string" ]]; then
+                echo "Invalid datatype"
+                rm -f "$meta_file" "$data_file"
+                return
+            fi
+        fi
+
+        if [[ $i -eq 1 ]]; then
+            echo "$col_name$META_SEP$col_type$META_SEP""PK" >> "$meta_file"
+        else
+            echo "$col_name$META_SEP$col_type" >> "$meta_file"
         fi
     done
 
-    success "Table '$table_name' created successfully."
-
+    echo "Table created successfully"
 }
