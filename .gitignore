@@ -1,7 +1,10 @@
-# Ignore runtime databases
+# Ignore database files and metadata
 databases/
+*.tbl
+*.meta
 
-# Ignore editor temp files
+# Ignore session files or logs
+*.log
 *.swp
 *.tmp
 
