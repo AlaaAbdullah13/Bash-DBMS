@@ -25,7 +25,7 @@ echo -e "${BLUE}=============================${NC}"
 ensure_db_dir
 main_menu
 
-CURRENT_DB="testdb"
+CURRENT_DB="haneen"
 CURRENT_DB_PATH="$DB_DIR/$CURRENT_DB"
 
 mkdir -p "$CURRENT_DB_PATH"
