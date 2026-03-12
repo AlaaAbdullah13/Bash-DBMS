@@ -19,7 +19,7 @@ drop_table() {
     meta_file="$CURRENT_DB_PATH/$table_name.meta"
     data_file="$CURRENT_DB_PATH/$table_name.tbl"
 
-    if [[ ! -f $meta_file ]]
+    if [[ ! -f $meta_file || ! -f $data_file ]]
     then
         echo "Table does not exist."
         return
