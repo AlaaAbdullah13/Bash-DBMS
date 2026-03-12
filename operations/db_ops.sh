@@ -49,7 +49,8 @@ connect_to_database() {
     export CURRENT_DB="$dbname"
     export CURRENT_DB_PATH="$DB_DIR/$dbname"
     success "Connected to database: $dbname"
-    db_menu
+    # db_menu
+    show_db_menu
 }
 
 drop_database() {
