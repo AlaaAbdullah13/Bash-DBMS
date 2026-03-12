@@ -1,63 +1,53 @@
 #!/bin/bash
 
+source ./validations.sh
+
+
 create_table() {
 
     read -p "Enter table name: " table_name
 
-    if [[ -z "$table_name" ]]; then
-        echo "Table name cannot be empty"
-        return
-    fi
-
     if ! validate_name "$table_name"; then
-        echo "Invalid table name"
-        return
+        return 1
     fi
 
     meta_file="$CURRENT_DB_PATH/$table_name$META_EXT"
     data_file="$CURRENT_DB_PATH/$table_name$TABLE_EXT"
 
     if [[ -f "$meta_file" || -f "$data_file" ]]; then
-        echo "Table already exists"
-        return
+        error "Table '$table_name' already exists"
+        return 1
     fi
 
     read -p "Enter number of columns: " col_count
 
     if ! [[ "$col_count" =~ ^[1-9][0-9]*$ ]]; then
-        echo "Invalid number of columns"
-        return
+        error "Invalid number of columns. Must be a positive integer."
+        return 1
     fi
 
-    > "$meta_file"
-    > "$data_file"
+    true > "$meta_file"
+    true > "$data_file"
 
     for (( i=1; i<=col_count; i++ ))
     do
         read -p "Enter column $i name: " col_name
 
-        if [[ -z "$col_name" ]]; then
-            echo "Column name cannot be empty"
-            rm -f "$meta_file" "$data_file"
-            return
-        fi
-
         if ! validate_name "$col_name"; then
-            echo "Invalid column name"
             rm -f "$meta_file" "$data_file"
-            return
+            return 1
         fi
 
         if [[ "$col_name" == "id" ]]; then
             col_type="int"
-            echo "id datatype is fixed as int"
+            info "Column 'id' datatype is fixed as int"
         else
             read -p "Enter datatype of $col_name (int/string): " col_type
 
             if [[ "$col_type" != "int" && "$col_type" != "string" ]]; then
-                echo "Invalid datatype"
+                error "Invalid datatype '$col_type'. Supported types: int, string."
                 rm -f "$meta_file" "$data_file"
-                return
+                return 1
             fi
         fi
 
@@ -68,5 +58,6 @@ create_table() {
         fi
     done
 
-    echo "Table created successfully"
+    success "Table '$table_name' created successfully"
+    return 0
 }
