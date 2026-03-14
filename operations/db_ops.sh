@@ -21,6 +21,11 @@ create_database() {
 
     mkdir -p "$DB_DIR/$dbname"
     success "Database '$dbname' created successfully."
+
+    read -p "Do you want to connect to '$dbname' now? (y/n): " connect_choice
+    if [[ "$connect_choice" == "y" || "$connect_choice" == "Y" ]]; then
+        perform_connection "$dbname"
+    fi
 }
 
 list_databases() {
@@ -30,7 +35,15 @@ list_databases() {
     fi
 
     info "Available Databases:"
-    ls -d "$DB_DIR"/*/  
+    ls -F "$DB_DIR" | grep / | sed 's/\///'
+}
+
+perform_connection() {
+    local dbname="$1"
+    export CURRENT_DB="$dbname"
+    export CURRENT_DB_PATH="$DB_DIR/$dbname"
+    success "Connected to database: $dbname"
+    show_db_menu
 }
 
 connect_to_database() {
@@ -46,11 +59,7 @@ connect_to_database() {
         return 1
     fi
 
-    export CURRENT_DB="$dbname"
-    export CURRENT_DB_PATH="$DB_DIR/$dbname"
-    success "Connected to database: $dbname"
-    # db_menu
-    show_db_menu
+    perform_connection "$dbname"
 }
 
 drop_database() {

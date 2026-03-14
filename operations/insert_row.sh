@@ -1,8 +1,10 @@
 #!/usr/bin/bash
 
 insert_row() {
-
-    read -p "Enter table name: " table_name
+    local table_name=$1
+    if [[ -z "$table_name" ]]; then
+        read -p "Enter table name: " table_name
+    fi
     table_name=$(trim "$table_name")
 
     if ! validate_name "$table_name"
@@ -20,24 +22,41 @@ insert_row() {
     fi
 
     row=""
+    col_index=0
 
-    while IFS="$META_SEP" read -r col_name col_type col_key
+    while IFS="$META_SEP" read -r col_name col_type col_key <&3
     do
-        read -p "Enter value for $col_name: " value
-        value=$(trim "$value")
+        ((col_index++))
+        
+        while true; do
+            read -p "Enter value for $col_name (type 'q' to cancel): " value
+            value=$(trim "$value")
 
-        if ! validate_type "$value" "$col_type"
-        then
-            return
-        fi
-
-        if [[ "$col_key" == "PK" ]]
-        then
-            if ! check_pk_unique "$table_name" "$value"
-            then
+            if [[ "$value" == "q" ]]; then
+                info "Returning to menu..."
                 return
             fi
-        fi
+
+            # 1. Validate Type (Now allows empty for optional fields)
+            if ! validate_type "$value" "$col_type"; then
+                warning "Please try again or enter 'q' to cancel."
+                continue
+            fi
+
+            # 2. Check Primary Key Constraints
+            if [[ "$col_key" == "PK" ]]; then
+                if [[ -z "$value" ]]; then
+                    error "Primary Key ($col_name) cannot be empty."
+                    continue
+                fi
+                if ! check_pk_unique "$table_name" "$value"; then
+                    continue
+                fi
+            fi
+
+            # If we reached here, value is valid
+            break
+        done
 
         if [[ -z "$row" ]]
         then
@@ -46,9 +65,10 @@ insert_row() {
             row="$row$DATA_SEP$value"
         fi
 
-    done < "$meta_file"
+    done 3< "$meta_file"
 
     echo "$row" >> "$data_file"
     success "Row inserted successfully into '$table_name'."
-
+    return 0
+}
 }

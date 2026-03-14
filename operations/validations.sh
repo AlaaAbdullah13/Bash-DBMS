@@ -19,18 +19,6 @@ trim() {
     echo "$value"
 }
 
-# ============================================
-# Validate DB / Table name
-# Rules:
-#   - No leading/trailing spaces (auto trim)
-#   - Must start with a letter
-#   - Only letters, numbers, underscores allowed
-#   - No spaces in the middle
-#   - Not empty
-#   - Max 64 characters (like MySQL)
-# params: (name)
-# returns: 0=valid, 1=invalid
-# ============================================
 validate_name() {
     local name
     name=$(trim "$1")
@@ -67,9 +55,9 @@ validate_type() {
     local value="$1"
     local type="$2"
 
+    # Allow empty value (handled as NULL)
     if [[ -z "$value" ]]; then
-        error "Value cannot be empty."
-        return 1
+        return 0
     fi
 
     case "$type" in
@@ -109,8 +97,8 @@ check_pk_unique() {
     local meta_file="$CURRENT_DB_PATH/$table$META_EXT"
     local data_file="$CURRENT_DB_PATH/$table$TABLE_EXT"
 
-    if [[ ! -f "$meta_file" ]]; then
-        error "Table '$table' does not exist."
+    if [[ ! -f "$meta_file" || ! -f "$data_file" ]]; then
+        error "Table '$table' is corrupted or does not exist."
         return 1
     fi
 
@@ -132,6 +120,51 @@ check_pk_unique() {
     fi
 
     return 0
+}
+
+# ============================================
+# Visual Row Selection Helper
+# ============================================
+get_row_visual_pk() {
+    local table=$1
+    local provided_pk=$2 # Support for non-interactive testing
+    
+    if [[ -n "$provided_pk" ]]; then
+        echo "$provided_pk"
+        return 0
+    fi
+
+    local meta_file="$CURRENT_DB_PATH/$table$META_EXT"
+    local data_file="$CURRENT_DB_PATH/$table$TABLE_EXT"
+
+    if [[ ! -f "$meta_file" || ! -f "$data_file" ]]; then
+        return 1
+    fi
+
+    if [[ ! -s "$data_file" ]]; then
+        return 1
+    fi
+
+    local args=("--list" "--title=Select Row" "--text=Choose a record from '$table':" "--height=400" "--width=600")
+    local col_index=0
+    local pk_idx=1
+    while IFS="$META_SEP" read -r col_name col_type col_key; do
+        ((col_index++))
+        args+=("--column=$col_name")
+        if [[ "$col_key" == "PK" ]]; then
+            pk_idx=$col_index
+        fi
+    done < "$meta_file"
+
+    local selected_pk
+    selected_pk=$(cat "$data_file" | sed "s/$DATA_SEP/\n/g" | zenity "${args[@]}" --print-column="$pk_idx" 2>/dev/null)
+    
+    if [[ $? -eq 0 && -n "$selected_pk" ]]; then
+        echo "$selected_pk"
+        return 0
+    else
+        return 1
+    fi
 }
 
 # ============================================
