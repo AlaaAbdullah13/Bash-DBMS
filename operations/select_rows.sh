@@ -39,7 +39,7 @@ select_rows() {
 
     {
         echo "$header"
-        cat "$data_file"
+        sort -t"$DATA_SEP" -k1,1n "$data_file"
     } | column -t -s "$DATA_SEP"
 
 }
