@@ -16,6 +16,7 @@ update_row() {
     if ! validate_connection; then
         return
     fi
+    local table_path="$CURRENT_DB_PATH/$table_name$TABLE_EXT"
     if ! validate_table_exists "$table_name"; then
         return
     fi

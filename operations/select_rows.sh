@@ -12,12 +12,8 @@ select_rows() {
         return
     fi
 
-    if ! validate_table_exists "$table_name"; then
-        return
-    fi
-
-    meta_file="$CURRENT_DB_PATH/$table_name$META_EXT"
-    data_file="$CURRENT_DB_PATH/$table_name$TABLE_EXT"
+    local meta_file="$CURRENT_DB_PATH/$table_name$META_EXT"
+    local data_file="$CURRENT_DB_PATH/$table_name$TABLE_EXT"
 
     if [[ ! -s "$data_file" ]]
     then
