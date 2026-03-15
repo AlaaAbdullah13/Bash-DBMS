@@ -47,16 +47,15 @@ delete_row() {
 
     # 5. Confirmation
     # Fetch row data for confirmation message
-    local row_data=$(awk -F"$DATA_SEP" -v col="$pk_col_index" -v val="$pk" '$col == val {print $0}' "$table_path")
+    local row_data=$(awk -F"[$DATA_SEP]" -v col="$pk_col_index" -v val="$pk" '$col == val {print $0}' "$table_path")
 
     if [[ -n "$row_data" ]]; then
         info "Selected row: $row_data"
-         warning "Are you sure you want to delete this row? (y/n): "  
-         read -rp  confirm   
+        read -rp "Are you sure you want to delete this row? (y/n): " confirm
 
         if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
             # Best Practice: Use awk to exclude the row with matching PK
-            awk -F"$DATA_SEP" -v col="$pk_col_index" -v val="$pk" '$col != val' "$table_path" > "$table_path.tmp" && mv "$table_path.tmp" "$table_path"
+            awk -F"[$DATA_SEP]" -v col="$pk_col_index" -v val="$pk" '$col != val' "$table_path" > "$table_path.tmp" && mv "$table_path.tmp" "$table_path"
             success "Row with PK '$pk' deleted successfully."
         else
             info "Deletion cancelled."

@@ -44,7 +44,7 @@ update_row() {
     fi
 
     local line_info
-    line_info=$(awk -F"$DATA_SEP" -v col="$pk_col_index" -v val="$pk" '$col == val {print NR "|" $0}' "$table_path")
+    line_info=$(awk -F"[$DATA_SEP]" -v col="$pk_col_index" -v val="$pk" '$col == val {print NR "|" $0}' "$table_path")
     
     if [[ -z "$line_info" ]]; then
         error "Could not locate row with PK '$pk'."
