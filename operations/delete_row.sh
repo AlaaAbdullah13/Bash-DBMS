@@ -50,7 +50,9 @@ delete_row() {
 
     if [[ -n "$row_data" ]]; then
         info "Selected row: $row_data"
-        read -rp "Are you sure you want to delete this row? (y/n): " confirm
+         warning "Are you sure you want to delete this row? (y/n): "  
+         read -rp  confirm   
+
         if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
             # Best Practice: Use awk to exclude the row with matching PK
             awk -F"$DATA_SEP" -v col="$pk_col_index" -v val="$pk" '$col != val' "$table_path" > "$table_path.tmp" && mv "$table_path.tmp" "$table_path"
