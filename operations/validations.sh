@@ -1,6 +1,5 @@
 #!/bin/bash
 # shellcheck shell=bash
-# ============================================
 source ./config.sh
 
 trim() {
@@ -77,16 +76,15 @@ validate_type() {
     esac
 }
 
-# ============================================
-# HELPER: Get PK column index for a table
-# params: (table_name)
-# returns: index (printed), 1 on error
-# ============================================
+
 get_pk_index() {
-    local table=$1
-    local meta_file="$CURRENT_DB_PATH/$table$META_EXT"
-    
-    if [[ ! -f "$meta_file" ]]; then
+    if ! validate_connection; then
+        return 1
+    fi
+    local table_name=$1
+    local data_file="$CURRENT_DB_PATH/$table_name$TABLE_EXT"
+    local meta_file="$CURRENT_DB_PATH/$table_name$META_EXT"
+    if ! validate_table_exists "$table_name"; then
         return 1
     fi
 
@@ -101,11 +99,7 @@ get_pk_index() {
     fi
 }
 
-# ============================================
-# Check if PK value is unique in table
-# params: (table_name, pk_value)
-# returns: 0=unique, 1=duplicate
-# ============================================
+
 check_pk_unique() {
     local table="$1"
     local value="$2"
@@ -132,6 +126,27 @@ check_pk_unique() {
     return 0
 }
 
+
+
+validate_connection() {
+    if [[ -z "$CURRENT_DB" ]]; then
+        error "No database connected. Please connect to a database first."
+        return 1
+    fi
+    return 0
+}
+
+validate_table_exists() {
+    local table=$1
+    local meta_file="$CURRENT_DB_PATH/$table$META_EXT"
+    local data_file="$CURRENT_DB_PATH/$table$TABLE_EXT"
+
+    if [[ ! -f "$meta_file" || ! -f "$data_file" ]]; then
+        error "Table '$table' is corrupted or does not exist."
+        return 1
+    fi
+    return 0
+}
 
 get_row_visual_pk() {
     local table=$1

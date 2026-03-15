@@ -15,9 +15,10 @@ delete_row() {
     fi
 
     # 2. Check if table files exist
-    local table_path="$CURRENT_DB_PATH/$table_name$TABLE_EXT"
-    if [[ ! -f "$table_path" ]]; then
-        error "Table '$table_name' does not exist."
+    if ! validate_connection; then
+        return
+    fi
+    if ! validate_table_exists "$table_name"; then
         return
     fi
 

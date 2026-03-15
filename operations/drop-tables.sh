@@ -4,6 +4,10 @@ drop_table() {
 
     read -rp "Enter table name to drop: " table_name
 
+    if ! validate_connection; then
+        return
+    fi
+
     if [[ -z $table_name ]]
     then
         echo "Table name cannot be empty."

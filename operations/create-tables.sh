@@ -15,6 +15,10 @@ create_table() {
     meta_file="$CURRENT_DB_PATH/$table_name$META_EXT"
     data_file="$CURRENT_DB_PATH/$table_name$TABLE_EXT"
 
+    if ! validate_connection; then
+        return
+    fi
+
     if [[ -f "$meta_file" || -f "$data_file" ]]
     then
         error "Table '$table_name' already exists."
