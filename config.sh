@@ -28,5 +28,5 @@ warning() { echo -e "${YELLOW}[!] $1${NC}"; }
 info()    { echo -e "${BLUE}[*] $1${NC}"; }
 
 
-# ----- Bootstrap -----
+# ----- Boodb1tstrap -----
 mkdir -p "$DB_DIR"

@@ -15,7 +15,6 @@ main_menu() {
             "5" "Exit" \
             --height=350 --width=400)
 
-        # Handle Cancel or Close button
         if [ $? -ne 0 ] || [ -z "$choice" ]; then
             info "Exiting... Goodbye!"
             exit 0

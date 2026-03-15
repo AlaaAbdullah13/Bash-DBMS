@@ -1,17 +1,8 @@
 #!/bin/bash
 # shellcheck shell=bash
 # ============================================
-# File    : operations/validation.sh
-# Author  : Alaa
-# Purpose : All validation functions
-# ============================================
 source ./config.sh
 
-# ============================================
-# HELPER: Trim leading/trailing spaces
-# params: (string)
-# returns: trimmed string
-# ============================================
 trim() {
     local value="$1"
     value="${value#"${value%%[![:space:]]*}"}"
@@ -38,6 +29,11 @@ validate_name() {
         return 1
     fi
 
+    if [[ "$name" =~ \\ ]]; then
+        error "Name cannot contain backslashes '\'."
+        return 1
+    fi
+
     if [[ ! "$name" =~ ^[a-zA-Z][a-zA-Z0-9_]*$ ]]; then
         error "Name must start with a letter and contain only letters, numbers, or underscores."
         return 1
@@ -46,16 +42,10 @@ validate_name() {
     return 0
 }
 
-# ============================================
-# Validate data type
-# params: (value, type)
-# returns: 0=valid, 1=invalid
-# ============================================
 validate_type() {
     local value="$1"
     local type="$2"
 
-    # Allow empty value (handled as NULL)
     if [[ -z "$value" ]]; then
         return 0
     fi
@@ -74,6 +64,10 @@ validate_type() {
                 error "Value cannot contain the '|' character."
                 return 1
             fi
+            if [[ "$value" =~ \\ ]]; then
+                error "Value cannot contain backslashes '\'."
+                return 1
+            fi
             return 0
             ;;
         *)
@@ -84,33 +78,49 @@ validate_type() {
 }
 
 # ============================================
-# Check if PK value is unique in table
-# params: (table_name, pk_value)
-# returns: 0=unique, 1=duplicate
+# HELPER: Get PK column index for a table
+# params: (table_name)
+# returns: index (printed), 1 on error
 # ============================================
-check_pk_unique() {
-    local table
-    local value
-    table=$(trim "$1")
-    value=$(trim "$2")
-
+get_pk_index() {
+    local table=$1
     local meta_file="$CURRENT_DB_PATH/$table$META_EXT"
-    local data_file="$CURRENT_DB_PATH/$table$TABLE_EXT"
-
-    if [[ ! -f "$meta_file" || ! -f "$data_file" ]]; then
-        error "Table '$table' is corrupted or does not exist."
+    
+    if [[ ! -f "$meta_file" ]]; then
         return 1
     fi
 
     local pk_col_index
     pk_col_index=$(grep -n ":PK" "$meta_file" | cut -d: -f1)
+    
+    if [[ -n "$pk_col_index" ]]; then
+        echo "$pk_col_index"
+        return 0
+    else
+        return 1
+    fi
+}
 
-    if [[ -z "$pk_col_index" ]]; then
+# ============================================
+# Check if PK value is unique in table
+# params: (table_name, pk_value)
+# returns: 0=unique, 1=duplicate
+# ============================================
+check_pk_unique() {
+    local table="$1"
+    local value="$2"
+    local data_file="$CURRENT_DB_PATH/$table$TABLE_EXT"
+
+    local pk_col_index
+    pk_col_index=$(get_pk_index "$table")
+
+    if [[ $? -ne 0 ]]; then
         error "No primary key defined in table '$table'."
         return 1
     fi
 
-    if [[ ! -f "$data_file" ]]; then
+    # If data file is empty/missing, it's unique by definition
+    if [[ ! -s "$data_file" ]]; then
         return 0
     fi
 
@@ -122,12 +132,10 @@ check_pk_unique() {
     return 0
 }
 
-# ============================================
-# Visual Row Selection Helper
-# ============================================
+
 get_row_visual_pk() {
     local table=$1
-    local provided_pk=$2 # Support for non-interactive testing
+    local provided_pk=$2 
     
     if [[ -n "$provided_pk" ]]; then
         echo "$provided_pk"
@@ -167,10 +175,7 @@ get_row_visual_pk() {
     fi
 }
 
-# ============================================
-# Ensure databases directory exists
-# (run once at startup - works on any machine)
-# ============================================
+
 ensure_db_dir() {
     if [[ ! -d "$DB_DIR" ]]; then
         mkdir -p "$DB_DIR"

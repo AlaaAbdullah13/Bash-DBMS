@@ -3,7 +3,7 @@
 insert_row() {
     local table_name=$1
     if [[ -z "$table_name" ]]; then
-        read -p "Enter table name: " table_name
+        read -rp "Enter table name: " table_name
     fi
     table_name=$(trim "$table_name")
 
@@ -29,7 +29,7 @@ insert_row() {
         ((col_index++))
         
         while true; do
-            read -p "Enter value for $col_name (type 'q' to cancel): " value
+            read -rp "Enter value for $col_name (type 'q' to cancel): " value
             value=$(trim "$value")
 
             if [[ "$value" == "q" ]]; then
@@ -37,13 +37,11 @@ insert_row() {
                 return
             fi
 
-            # 1. Validate Type (Now allows empty for optional fields)
             if ! validate_type "$value" "$col_type"; then
                 warning "Please try again or enter 'q' to cancel."
                 continue
             fi
 
-            # 2. Check Primary Key Constraints
             if [[ "$col_key" == "PK" ]]; then
                 if [[ -z "$value" ]]; then
                     error "Primary Key ($col_name) cannot be empty."
@@ -54,7 +52,6 @@ insert_row() {
                 fi
             fi
 
-            # If we reached here, value is valid
             break
         done
 
@@ -71,4 +68,4 @@ insert_row() {
     success "Row inserted successfully into '$table_name'."
     return 0
 }
-}
+

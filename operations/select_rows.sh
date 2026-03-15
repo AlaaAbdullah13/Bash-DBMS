@@ -2,7 +2,7 @@
 
 select_rows() {
 
-    read -p "Enter table name: " table_name
+    read -rp "Enter table name: " table_name
     table_name=$(trim "$table_name")
 
     if ! validate_name "$table_name"

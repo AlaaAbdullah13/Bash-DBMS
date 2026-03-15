@@ -4,7 +4,7 @@
 source ./operations/validations.sh
 
 create_table() {
-    read -p "Enter table name: " table_name
+    read -rp "Enter table name: " table_name
     table_name=$(trim "$table_name")
 
     if ! validate_name "$table_name"
@@ -21,7 +21,7 @@ create_table() {
         return 1
     fi
 
-    read -p "Enter number of columns: " col_count
+    read -rp "Enter number of columns: " col_count
     if ! [[ "$col_count" =~ ^[0-9]+$ ]] || [ "$col_count" -le 0 ]
     then
         error "Invalid input. Number of columns must be a positive integer."
@@ -34,7 +34,7 @@ create_table() {
     for (( i=1; i<=col_count; i++ ))
     do
         while true; do
-            read -p "Enter column $i Name: " cname
+            read -rp "Enter column $i Name: " cname
             cname=$(trim "$cname")
             if validate_name "$cname"; then
                 col_names[$i]="$cname"
@@ -47,7 +47,7 @@ create_table() {
             info "Column 'id' datatype is fixed as 'int'."
         else
             while true; do
-                read -p "Enter column $i Type (int/string): " ctype
+                read -rp "Enter column $i Type (int/string): " ctype
                 ctype=$(trim "$ctype" | tr '[:upper:]' '[:lower:]')
                 if [[ "$ctype" == "int" || "$ctype" == "string" ]]; then
                     col_types[$i]="$ctype"
@@ -61,7 +61,7 @@ create_table() {
 
     # --- Ask for Primary Key ---
     while true; do
-        read -p "Enter the number of the column to be the Primary Key (1-$col_count): " pk_index
+        read -rp "Enter the number of the column to be the Primary Key (1-$col_count): " pk_index
         if [[ "$pk_index" =~ ^[0-9]+$ ]] && [ "$pk_index" -ge 1 ] && [ "$pk_index" -le "$col_count" ]; then
             break
         else
