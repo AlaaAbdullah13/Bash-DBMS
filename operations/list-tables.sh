@@ -6,9 +6,7 @@ list_tables() {
 
     tables=$(ls "$CURRENT_DB_PATH"/*.meta 2>/dev/null)
 
-    if [[ -z $tables ]]
-    then
-        echo "No tables found."
+    if ! validate_connection; then
         return
     fi
 

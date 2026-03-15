@@ -2,7 +2,11 @@
 
 drop_table() {
 
-    read -p "Enter table name to drop: " table_name
+    read -rp "Enter table name to drop: " table_name
+
+    if ! validate_connection; then
+        return
+    fi
 
     if [[ -z $table_name ]]
     then
@@ -25,7 +29,7 @@ drop_table() {
         return
     fi
 
-    read -p "Are you sure you want to delete $table_name ? (y/n): " confirm
+    read -rp "Are you sure you want to delete $table_name ? (y/n): " confirm
 
     if [[ $confirm == "y" || $confirm == "Y" ]]
     then

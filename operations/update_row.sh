@@ -5,23 +5,21 @@ update_row() {
     local pk_arg=$2
     
     if [[ -z "$table_name" ]]; then
-        read -p "Enter table name: " table_name
+        read -rp "Enter table name: " table_name
     fi
     table_name=$(trim "$table_name")
 
-    # 1. Validate table name format
     if ! validate_name "$table_name"; then
         return
     fi
 
-    # 2. Check if table files exist
-    local table_path="$CURRENT_DB_PATH/$table_name$TABLE_EXT"
-    if [[ ! -f "$table_path" ]]; then
-        error "Table '$table_name' does not exist."
+    if ! validate_connection; then
+        return
+    fi
+    if ! validate_table_exists "$table_name"; then
         return
     fi
 
-    # 3. Visual Row Selection
     local pk
     if [[ -n "$pk_arg" ]]; then
         pk="$pk_arg"
@@ -34,12 +32,16 @@ update_row() {
         return
     fi
 
-    # 4. Get table information
+      # 4. Get table information
     local meta_file="$CURRENT_DB_PATH/$table_name$META_EXT"
     local pk_col_index
-    pk_col_index=$(grep -n ":PK" "$meta_file" | cut -d: -f1)
+    pk_col_index=$(get_pk_index "$table_name")
 
-    # Find the target line number and current data
+    if [[ $? -ne 0 ]]; then
+        error "No Primary Key defined for table '$table_name'."
+        return
+    fi
+
     local line_info
     line_info=$(awk -F"$DATA_SEP" -v col="$pk_col_index" -v val="$pk" '$col == val {print NR "|" $0}' "$table_path")
     
@@ -54,7 +56,6 @@ update_row() {
     info "Updating record: $old_row_data"
     info "Note: The Primary Key cannot be changed (Best Practice)."
 
-    # 5. Build New Row
     local new_row=""
     local col_index=0
     
@@ -67,7 +68,7 @@ update_row() {
         if [[ "$col_key" == "PK" ]]; then
             new_val="$current_val"
         else
-            read -p "Enter new value for $col_name (Leave empty to keep '$current_val', 'q' to cancel): " input
+            read -rp "Enter new value for $col_name (Leave empty to keep '$current_val', 'q' to cancel): " input
             input=$(trim "$input")
             
             if [[ "$input" == "q" ]]; then
@@ -78,7 +79,6 @@ update_row() {
             if [[ -z "$input" ]]; then
                 new_val="$current_val"
             else
-                # Validate Type
                 if ! validate_type "$input" "$col_type"; then
                     warning "Invalid type. Keeping original value '$current_val'."
                     new_val="$current_val"
@@ -95,8 +95,6 @@ update_row() {
         fi
     done 3< "$meta_file"
 
-    # 6. In-Place Update (Line Replacement)
-    # Use a safe line-replacement pattern
     awk -v target="$line_num" -v replacement="$new_row" 'NR == target {print replacement; next} {print}' "$table_path" > "$table_path.tmp" && mv "$table_path.tmp" "$table_path"
 
     success "Row updated successfully in-place."

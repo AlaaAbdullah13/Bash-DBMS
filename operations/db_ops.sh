@@ -22,7 +22,7 @@ create_database() {
     mkdir -p "$DB_DIR/$dbname"
     success "Database '$dbname' created successfully."
 
-    read -p "Do you want to connect to '$dbname' now? (y/n): " connect_choice
+    read -rp "Do you want to connect to '$dbname' now? (y/n): " connect_choice
     if [[ "$connect_choice" == "y" || "$connect_choice" == "Y" ]]; then
         perform_connection "$dbname"
     fi

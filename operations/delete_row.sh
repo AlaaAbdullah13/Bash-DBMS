@@ -5,7 +5,7 @@ delete_row() {
     local pk_arg=$2
     
     if [[ -z "$table_name" ]]; then
-        read -p "Enter table name: " table_name
+        read -rp "Enter table name: " table_name
     fi
     table_name=$(trim "$table_name")
 
@@ -15,9 +15,10 @@ delete_row() {
     fi
 
     # 2. Check if table files exist
-    local table_path="$CURRENT_DB_PATH/$table_name$TABLE_EXT"
-    if [[ ! -f "$table_path" ]]; then
-        error "Table '$table_name' does not exist."
+    if ! validate_connection; then
+        return
+    fi
+    if ! validate_table_exists "$table_name"; then
         return
     fi
 
@@ -36,9 +37,9 @@ delete_row() {
     
     # 4. Get PK column index
     local pk_col_index
-    pk_col_index=$(grep -n ":PK" "$CURRENT_DB_PATH/$table_name$META_EXT" | cut -d: -f1)
+    pk_col_index=$(get_pk_index "$table_name")
 
-    if [[ -z "$pk_col_index" ]]; then
+    if [[ $? -ne 0 ]]; then
         error "No Primary Key defined for table '$table_name'."
         return
     fi
@@ -49,7 +50,9 @@ delete_row() {
 
     if [[ -n "$row_data" ]]; then
         info "Selected row: $row_data"
-        read -p "Are you sure you want to delete this row? (y/n): " confirm
+         warning "Are you sure you want to delete this row? (y/n): "  
+         read -rp  confirm   
+
         if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
             # Best Practice: Use awk to exclude the row with matching PK
             awk -F"$DATA_SEP" -v col="$pk_col_index" -v val="$pk" '$col != val' "$table_path" > "$table_path.tmp" && mv "$table_path.tmp" "$table_path"

@@ -2,22 +2,22 @@
 
 select_rows() {
 
-    read -p "Enter table name: " table_name
+    read -rp "Enter table name: " table_name
     table_name=$(trim "$table_name")
 
-    if ! validate_name "$table_name"
-    then
+    if ! validate_connection; then
+        return
+    fi
+    if ! validate_table_exists "$table_name"; then
+        return
+    fi
+
+    if ! validate_table_exists "$table_name"; then
         return
     fi
 
     meta_file="$CURRENT_DB_PATH/$table_name$META_EXT"
     data_file="$CURRENT_DB_PATH/$table_name$TABLE_EXT"
-
-    if [[ ! -f "$meta_file" || ! -f "$data_file" ]]
-    then
-        error "Table '$table_name' does not exist."
-        return
-    fi
 
     if [[ ! -s "$data_file" ]]
     then
