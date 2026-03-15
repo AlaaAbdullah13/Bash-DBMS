@@ -46,9 +46,10 @@ create_table() {
             fi
         done
 
-        if [[ "${col_names[$i]}" == "id" ]]; then
+        local name_lower=$(echo "${col_names[$i]}" | tr '[:upper:]' '[:lower:]')
+        if [[ "$name_lower" == "id" ]]; then
             col_types[$i]="int"
-            info "Column 'id' datatype is fixed as 'int'."
+            info "Column '${col_names[$i]}' datatype is fixed as 'int'."
         else
             while true; do
                 read -rp "Enter column $i Type (int/string): " ctype
