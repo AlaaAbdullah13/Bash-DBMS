@@ -27,13 +27,5 @@ error()   { echo -e "${RED}[-] Error: $1${NC}"; }
 warning() { echo -e "${YELLOW}[!] $1${NC}"; }
 info()    { echo -e "${BLUE}[*] $1${NC}"; }
 
-validate_name() {
-    if [[ "$1" =~ ^[a-zA-Z0-9_]+$ ]]; then
-        return 0
-    else
-        return 1
-    fi
-}
 
-# ----- Bootstrap -----
 mkdir -p "$DB_DIR"

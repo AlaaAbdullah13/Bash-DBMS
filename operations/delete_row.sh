@@ -1,0 +1,64 @@
+#!/usr/bin/bash
+
+delete_row() {
+    local table_name=$1
+    local pk_arg=$2
+    
+    if [[ -z "$table_name" ]]; then
+        read -rp "Enter table name: " table_name
+    fi
+    table_name=$(trim "$table_name")
+
+    # 1. Validate table name format
+    if ! validate_name "$table_name"; then
+        return
+    fi
+
+    # 2. Check if table files exist
+    if ! validate_connection; then
+        return
+    fi
+    if ! validate_table_exists "$table_name"; then
+        return
+    fi
+
+    # 3. Visual Row Selection
+    local pk
+    if [[ -n "$pk_arg" ]]; then
+        pk="$pk_arg"
+    else
+        pk=$(get_row_visual_pk "$table_name")
+    fi
+    
+    if [[ $? -ne 0 || -z "$pk" ]]; then
+        info "Deletion cancelled."
+        return
+    fi
+    
+    # 4. Get PK column index
+    local pk_col_index
+    pk_col_index=$(get_pk_index "$table_name")
+
+    if [[ $? -ne 0 ]]; then
+        error "No Primary Key defined for table '$table_name'."
+        return
+    fi
+
+    # 5. Confirmation
+    # Fetch row data for confirmation message
+    local row_data=$(awk -F"$DATA_SEP" -v col="$pk_col_index" -v val="$pk" '$col == val {print $0}' "$table_path")
+
+    if [[ -n "$row_data" ]]; then
+        info "Selected row: $row_data"
+         warning "Are you sure you want to delete this row? (y/n): "  
+         read -rp  confirm   
+
+        if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+            # Best Practice: Use awk to exclude the row with matching PK
+            awk -F"$DATA_SEP" -v col="$pk_col_index" -v val="$pk" '$col != val' "$table_path" > "$table_path.tmp" && mv "$table_path.tmp" "$table_path"
+            success "Row with PK '$pk' deleted successfully."
+        else
+            info "Deletion cancelled."
+        fi
+    fi
+}
